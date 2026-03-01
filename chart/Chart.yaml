@@ -1,0 +1,17 @@
+apiVersion: v2
+name: demo-rag
+description: Sample RAG app demonstrating NKP catalog composability. Uses Weaviate for document storage.
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - nkp
+  - demo
+  - sample
+  - rag
+  - weaviate
+home: https://github.com/deepak-muley/nkp-demo-rag
+sources:
+  - https://github.com/deepak-muley/nkp-demo-rag
+maintainers:
+  - name: deepak-muley
+    url: https://github.com/deepak-muley
