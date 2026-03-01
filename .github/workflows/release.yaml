@@ -4,6 +4,9 @@ on:
   push:
     tags:
       - 'v*'
+  pull_request:
+    branches:
+      - main
 
 env:
   REGISTRY: ghcr.io
@@ -27,18 +30,32 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract version
-        id: version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      - name: Extract version and tags
+        id: meta
+        run: |
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF#refs/tags/v}"
+            echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+            echo "tags<<EOF" >> $GITHUB_OUTPUT
+            echo "ghcr.io/deepak-muley/demo-rag:$VERSION" >> $GITHUB_OUTPUT
+            echo "ghcr.io/deepak-muley/demo-rag:latest" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            VERSION="0.0.0-pr.${{ github.event.pull_request.number }}"
+            echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+            echo "tags<<EOF" >> $GITHUB_OUTPUT
+            echo "ghcr.io/deepak-muley/demo-rag:$VERSION" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
 
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
-          tags: |
-            ghcr.io/deepak-muley/demo-rag:${{ steps.version.outputs.VERSION }}
-            ghcr.io/deepak-muley/demo-rag:latest
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Set up Helm
         uses: azure/setup-helm@v4
@@ -47,9 +64,9 @@ jobs:
 
       - name: Log in to OCI Registry (Helm)
         run: |
-          echo ${{ secrets.GITHUB_TOKEN }} | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Package and push Helm chart
         run: |
-          helm package chart/ --version ${{ steps.version.outputs.VERSION }}
-          helm push demo-rag-${{ steps.version.outputs.VERSION }}.tgz oci://ghcr.io/deepak-muley/charts
+          helm package chart/ --version ${{ steps.meta.outputs.VERSION }}
+          helm push demo-rag-${{ steps.meta.outputs.VERSION }}.tgz oci://ghcr.io/deepak-muley/charts

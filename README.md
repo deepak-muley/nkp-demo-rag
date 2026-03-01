@@ -56,12 +56,23 @@ make build
 make release VERSION=1.0.0
 ```
 
-### Release (GitHub Actions)
+### CI/CD (GitHub Actions)
+
+The workflow runs on **every pull request** to `main` and on **tag pushes**:
+
+| Trigger | Docker Image | Helm Chart |
+|---------|--------------|------------|
+| PR to `main` | `ghcr.io/deepak-muley/demo-rag:0.0.0-pr.<PR_NUMBER>` | `oci://ghcr.io/deepak-muley/charts` (version `0.0.0-pr.<PR_NUMBER>`) |
+| Tag push `v*` | `ghcr.io/deepak-muley/demo-rag:<VERSION>` and `:latest` | `oci://ghcr.io/deepak-muley/charts` (version from tag) |
+
+**Release a new version:**
 
 ```bash
 git tag v1.0.0
 git push origin v1.0.0
 ```
+
+Artifacts are published to [GitHub Container Registry](https://github.com/deepak-muley/nkp-demo-rag/pkgs/container/demo-rag) and [GitHub Packages](https://github.com/deepak-muley/nkp-demo-rag/packages).
 
 ## Catalog Entry
 
