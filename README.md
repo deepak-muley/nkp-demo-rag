@@ -2,6 +2,10 @@
 
 A **sample RAG application** for demonstrating NKP AI catalog composability. It depends on [Weaviate](https://www.weaviate.io/), indexes sample documents, and provides a simple query UI.
 
+## Documentation
+
+- **[Architecture & RAG Overview](docs/ARCHITECTURE.md)** — Code flow, RAG concepts, and how this demo works
+
 ## Purpose
 
 This app showcases:
